@@ -3,6 +3,7 @@ package jm.task.core.jdbc.util;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 public class Util {
 
@@ -10,27 +11,24 @@ public class Util {
     private static final String password = "1234";
     private static final String url = "jdbc:mysql://localhost:3306/preproject";
     private static final String driver = "com.mysql.cj.jdbc.Driver";
-    public static Connection connection;
 
-    public static Connection getConnection() {
+    public static void getConnection() {
 
-        try {
-            connection = DriverManager.getConnection(url,userName,password);
+        try (Connection connection = DriverManager.getConnection(url,userName,password)) {
+            connection.setAutoCommit(false);
             Class.forName(driver);
-            if (!connection.isClosed()) {
-                System.out.println("Connected");
+            try (Statement statement = connection.createStatement()) {
+                connection.commit();
+            } catch (SQLException e) {
+                connection.rollback();
+                e.printStackTrace();
             }
-            else {
-                System.out.println("Connection failed");
-            }
+            connection.setAutoCommit(true);
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
         }
-        return connection;
     }
     public static void main(String[] args) {
-
-        Util.getConnection();
 
     }
 }
